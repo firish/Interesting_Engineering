@@ -82,13 +82,37 @@
 
 
 ### Can we do something better?
-# Of course, here comes the smart piece of engineering optimization. 
-
-
+# Of course, here comes the smart piece of engineering optimization.
+# The answer: we use k different hash functions.
+# To add an element, feed it to each of the k hash functions to get k array positions. 
+# Set the bits at all these positions to 1.
+# To test whether an element is in the set, feed it to each of the k hash functions to get k array positions.
+# If any of the bits at these positions is 0, the element is definitely not in the set.
+# Using multiple hash functions significantly reduces the chances of false positives.
+# Note: the value of k is not too large, and double hashing and triple hashing are effective for k=3
 
 ### The magic formula
-# We start with a large-enough size of bloom filter, so we don't have to resize it often.
+# We know that we start with a large enough size of the bloom filter, so we don't have to resize it often.
 # However, if the filter is too big, we end up wasting space, the very thing that the bloom filter is meant to save.
-# So, after a lot of research, we have a general formula, for deciding the starting space of the bloom filter.
+# Next, what should be the value of k (no of hash functions to use)?
+
+# After, a lot of research, we have a general formula,
+# n = Number of items that will be inserted in the filter
+# m = Number of bits in the filter (size of the filter)
+# k = Number of hash functions
+# p = Acceptable probability of false positive
+
+
+### Space Requirement Comparison
+# We start with an acceptable value of probability (threshold), estimated n, and a constant k,
+# and calculate m using the magic formula (noted above).
+# If we wanted a false positive rate of just 1%, will have up to 10M elements in the set, and will use 3 hash functions,
+# m should be 12,364,167 bits or 1.47 MB
+
+# In contrast, if we stored them in a set, of 10M elements, 
+# We would roughly need, 8kb metadata, and 4kb key data, so 12kb data per key
+# So total data = 10*10^6 * 12*10^3 = 120*10^9 = 120 GB
+# Every time you think about whether the bloom filter hassle is worth it, remember about this size disparity.
+
 
 
