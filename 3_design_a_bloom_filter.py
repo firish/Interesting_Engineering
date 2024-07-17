@@ -50,7 +50,45 @@
 # key abc@gmail hashes to index 233, and now we are checking for bca@gmail,
 # If this also hashes to index 233, we get a false positive
 # So, this is one drawback of the Bloom Filters.
-# Note: the data structure can still say with 100% certainty if a key is not a part of the set.
+# Note: the data structure can still say with 100% certainty if a key is not a part of the set (if the bit in arr is 0).
 
+
+### How to reduce the probability of false positives?
+# The simplest way is to increase the size of the bloom filter
+# Generally speaking, collisions happen more probably because of the mod operation rather than the hash function.
+# Hence, increasing the bloom filter size significantly should substantially lower the odds of a collision.
+
+# Next, we look at the type of hash functions available to use for our bloom filter
+# We have md5, sha256, murmur hash, FN hash. Which one to pick?
+# sha, md5 are cryptographic in nature, here, the focus is on security (avoiding reverse hashing)
+# Due to this, they have complex algorithms, that can be reasonably CPU intensive, lowering the efficiency of the bloom filter.
+# Moreover, bloom filters do not warrant the security benefits that come alongside cryptographic hashing.
+# Hence, the most common implementations use MurMur hash (which is almost 10x faster than the above hashes) and also ensures a highly uniform distribution
+
+
+### Why do we need to resize our bloom filters? 
+# When the bloom filter arr starts filling up, the false positivity rate shoots up
+# when the arr is full, the fp rate is 100%
+# Hence, for the data structure to function, we need to manage the fp rate and keep it below a threshold
+# To do this, we need to resize the bloom filters.
+
+
+### Problem with resizing the bloom filters?
+# We CAN NOT simply copy-paste the existing bloom filter arr into a larger array.
+# This is because, we use a hash function, and when size changes, the hash and mod output will be affected, so all bits need to be re-hashed and replaced.
+# However, we do not have the actual keys stored in the bloom filter, so we can't re-hash them!
+# So, we need to have the keys stored in some other data structure, and then use that to resize our bloom filter. 
+# However, as expected, this operation will be very costly.
+
+
+### Can we do something better?
+# Of course, here comes the smart piece of engineering optimization. 
+
+
+
+### The magic formula
+# We start with a large-enough size of bloom filter, so we don't have to resize it often.
+# However, if the filter is too big, we end up wasting space, the very thing that the bloom filter is meant to save.
+# So, after a lot of research, we have a general formula, for deciding the starting space of the bloom filter.
 
 
