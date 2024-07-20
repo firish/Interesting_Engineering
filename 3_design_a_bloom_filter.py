@@ -1,4 +1,5 @@
 ### What the fuck is a Bloom Filter?
+# It was designed by Howard Bloom
 # Bloom Filter is basically used to check whether an element is a part of a set. Thats it.
 
 # Typically, hashmaps, and sets would suffice for this, as they both offer (almost) an constant time lookup.
@@ -91,6 +92,7 @@
 # Using multiple hash functions significantly reduces the chances of false positives.
 # Note: the value of k is not too large, and double hashing and triple hashing are effective for k=3
 
+
 ### The magic formula
 # We know that we start with a large enough size of the bloom filter, so we don't have to resize it often.
 # However, if the filter is too big, we end up wasting space, the very thing that the bloom filter is meant to save.
@@ -101,6 +103,40 @@
 # m = Number of bits in the filter (size of the filter)
 # k = Number of hash functions
 # p = Acceptable probability of false positive
+
+
+### Bloom Filters have MORE problems (Deletion)
+# How do you delete elements from a bloom filter?
+# One element, goes through k hash functions and yields k indexes that are all set to 1
+# For deletion, all of them would have to be switched to 0
+# But what if one of these indexes was also used by other keys? 
+# Then the filter would report that those keys were also absent, and be unusable!
+
+# Can we do something about this?
+# Yes. The answer is called a "Composite Bloom Filter"
+# This means, have two bloom filters.
+# One for all the elements that are in the set, (the normal one)
+# and One for all the keys that were deleted (the composite one)
+# Both the filters need not use the same hash functions
+# Hence when we check for an element, we can first check if it was deleted and then check if it exists
+# If check 1 is false, and check 2 is true, then the element exists.
+
+
+### Trouble in Paradise (False Negatives)
+# As more elements start getting deleted, the composite filter starts filling up
+# There will be collisions in the composite filter
+# Collisions in the composite filter can lead to false positives
+# IMP: A false positive in the composite filter, becomes a false negative in the main bloom filter
+# Hence, using this strategy, can lead to a possibility where our bloom filter has false positives and false negatives
+
+# Note:
+# There is one more issue at hand.
+# How do you handle the re-addition of the deleted keys?
+# You can't do it in any graceful way.
+# cause this means, a re-added key would have to be deleted from the composite filter, 
+# and for that you would have to maintain a secondary composite filter
+# any false positives in the secondary composite filter will cascade to false positives in the main filter, increasing the false positives rate.
+
 
 
 ### Space Requirement Comparison
@@ -114,5 +150,32 @@
 # So total data = 10*10^6 * 12*10^3 = 120*10^9 = 120 GB
 # Every time you think about whether the bloom filter hassle is worth it, remember about this size disparity.
 
+
+# Noteworthy:
+# Bloom filters also have the unusual property: 
+# The time needed either to add items or to check whether an item is in the set is a fixed constant, O(k), 
+# completely independent of the number of items already in the set.
+
+# Plus,
+# In a hardware implementation, 
+# The Bloom filter further shines because its k lookups are independent and can be parallelized.
+
+
+### No Wonder, it's used heavily in the real world.
+# The servers of Akamai Technologies, a content delivery provider, use Bloom filters to prevent "one-hit-wonders" from being stored in its disk caches. 
+# One-hit-wonders are web objects requested by users just once, something that Akamai found applied to nearly three-quarters of their caching infrastructure. 
+# Using a Bloom filter to detect the second request for a web object and caching that object only on its second request prevents one-hit wonders from entering the disk cache, 
+# significantly reducing disk workload and increasing disk cache hit rates.
+
+# Google Bigtable, Apache HBase, Apache Cassandra, ScyllaDB, and PostgreSQL,
+# use Bloom filters to reduce the disk lookups for non-existent rows or columns. 
+# Avoiding costly disk lookups considerably increases the performance of a database query operation
+
+# The Google Chrome web browser previously used a Bloom filter to identify malicious URLs. 
+# Any URL was first checked against a local Bloom filter, and only if the Bloom filter returned a positive result was a full check of the URL performed.
+
+# Bitcoin used Bloom filters to speed up wallet synchronization until privacy vulnerabilities with the implementation of Bloom filters were discovered
+
+# Medium uses Bloom filters to avoid recommending articles a user has previously read.
 
 
