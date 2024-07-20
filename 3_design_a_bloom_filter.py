@@ -1,5 +1,5 @@
 ### What the fuck is a Bloom Filter?
-# It was designed by Howard Bloom
+# It was designed by Howard Bloom 
 # Bloom Filter is basically used to check whether an element is a part of a set. Thats it.
 
 # Typically, hashmaps, and sets would suffice for this, as they both offer (almost) an constant time lookup.
@@ -178,4 +178,5 @@
 
 # Medium uses Bloom filters to avoid recommending articles a user has previously read.
 
-
+# Note,
+# Python library implementation of Bloom Filter: https://github.com/hiway/python-bloom-filter
