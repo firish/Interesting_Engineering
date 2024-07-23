@@ -79,9 +79,12 @@
 #    0        -         1       -      0              | Not used
 #    0        -         1       -      1              | Slot is holding continuation of run that has been shifted from its canonical slot.
 #    1        -         0       -      0              | Slot is holding the start of a run that is in its canonical slot. This is also the start of the cluster.
-#    1        -         0       -      1              | Slot is holding start of run that has been shifted from its canonical slot. Also the run for which this is the canonical slot exists but is shifted right.
+#    1        -         0       -      1              | Slot is holding the start of a run that has been shifted from its canonical slot. Also the run for which this is the canonical slot exists but is shifted right.
 #    1        -         1       -      0              | Not used
 #    1        -         1       -      1              | Slot is holding continuation of run that has been shifted from its canonical slot. Also the run for which this is the canonical slot exists but is shifted right.
 
+
+
+### How to do a Lookup? 
 
 
