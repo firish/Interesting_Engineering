@@ -35,6 +35,53 @@
 # This also avoids the need to access those keys from secondary storage, which is required for a bloom filter.
 
 
+### Base Algorithm
+# The quotient filter is based on a kind of hash table in which entries contain only a portion of the key plus some additional meta-data bits. 
+# These bits are used to deal with the case when distinct keys happen to hash to the same table entry.
+
+# In a quotient filter a hash function generates a p-bit FINGERPRINT. 
+# The r least significant bits are called the REMAINDER.
+# The q = p - r most significant bits is called the QUOTIENT, hence the name.
+# The hash table/array has m=2^q slots.
+
+# For some key d which hashes (single hashing function is used, unlike BF) to the fingerprint dH, 
+# let its quotient be dQ and the remainder be dR. 
+# QF will try to store the remainder (dR) in slot dQ, known as the CANONICAL slot.
+
+# In simple terms,
+# The quotient is used to identify the bucket position while the remainder gets stored in the bucket.
+
+
+### What about Collisions?
+# There are two types of collisions,
+# HARD collisions - If multiple keys hash to the same fingerprint
+# SOFT collisions - If the keys' fingerprints are distinct they can have the same quotient
+
+# IMP: If the canonical slot is occupied then the remainder is stored in some slot to the right.
+# The insertion algorithm ensures that all fingerprints having the same quotient are stored in contiguous slots.
+# IMP: Such a set of fingerprints is defined as a RUN.
+
+# More Important Terminology
+# Note: A run's first fingerprint might not occupy its canonical slot if the run has been forced right by some run to the left.
+# Note: However a run whose first fingerprint occupies its canonical slot indicates the start of a CLUSTER.
+# The initial run and all subsequent runs comprise the cluster, which terminates at an unoccupied slot or the start of another cluster.
+
+
+### The Meta-data bits!!!
+# Three additional bits are used to reconstruct a slot's fingerprint. 
+# 1. is_occupied - is set when a slot is the canonical slot for some key stored (somewhere) in the filter (but not necessarily in this slot).
+# 2. is_continuation - is set when a slot is occupied but not by the first remainder in a run
+# 3. is_shifted - is set when the remainder in a slot is not in its canonical slot.
+
+# is_occupied - is_continuation - is_shifted          | Meaning
+#    0        -         0       -      0              | Empty Slot
+#    0        -         0       -      1              | Slot is holding the start of a run that has been shifted from its canonical slot.
+#    0        -         1       -      0              | Not used
+#    0        -         1       -      1              | Slot is holding continuation of run that has been shifted from its canonical slot.
+#    1        -         0       -      0              | Slot is holding the start of a run that is in its canonical slot. This is also the start of the cluster.
+#    1        -         0       -      1              | Slot is holding start of run that has been shifted from its canonical slot. Also the run for which this is the canonical slot exists but is shifted right.
+#    1        -         1       -      0              | Not used
+#    1        -         1       -      1              | Slot is holding continuation of run that has been shifted from its canonical slot. Also the run for which this is the canonical slot exists but is shifted right.
 
 
 
