@@ -97,15 +97,15 @@
 # 7. Starting with the quotient's canonical slot we can scan left to locate the start of the cluster.
 # 8. We scan left looking for a non-empty slot with is_shifted as false. This indicates the start of the cluster. (See table above)
 
-# 9. Then we scan right (from the cluster) to locate the quotient's run's end.
-# 10. We scan right keeping a running count of the number of runs we must skip over. (BECAUSE it is possible that the entire run has been shifted to the right by the encroachment from the left of another run/s).
-# 11. Each slot to the right of the cluster and left of the canonical slot having is_occupied set,
-#     indicates another run to be skipped, so we increment the running count.
-# 12. Each slot having is_continuation clear indicates the start of another run, 
-#     thus the end of the previous run, so we decrement the running count.
-# 13. When the running count reaches zero, we will be scanning the quotient's run.
+# 9. While going left, keep a count of is_occupied slots.
+# 10. The number of is_occupied slots is the number of dQ's run in the filter (say nQ).
 
-# 14. We can compare the remainder in each slot in the run with dR. 
+# 11. Then start scanning right from the cluster head. We must scan right to the nQth run.
+# 12. The start of a run is indicated by is_continuation being false.
+# 13. So, keep going right until encountering nQ slots with is_continuation = 0.
+
+# 14. We are now at the start of dQ's run.
+# 14. We can compare the remainder in each slot in the run with dR until we get an empty slot or a slot with is_continuous=0 (a new run). 
 #     If found, we report that the key is (probably) in the filter otherwise we report that the key is definitely not in the filter.
 
 
@@ -115,15 +115,21 @@
 
 #   000   100   111   011    101   001   000   100
 # |_____|_aR__|_bR__|_cR___|_dR__|_eR__|_____|_fR___|
+#    0    1     2     3      4     5     6     7
 
 # Let's say we are hashing element e, which generates eQ=4 and eR, and we want to check if it exists in the filter.
 # First, we see that index=4 is occupied.
 # Next we have to look for the cluster head, so start scanning left.
 # ind4 is shifted, ind3 is shifted, ind2 is shifted, ind1 is not shifted.
 # So, ind1 is cluster start.
-# Now, we start scanning right and maintaining the two counts, oc=occupied count, and cc=continous count, rc=running count (oc-cc).
-# at ind1, oc=1, cc=0, rc=1.
-# at ind2, oc
-
-
-
+# While scanning till ind1 we see 3 is_occupied bits set to 1, ind4, ind2, and ind1)
+# So, eQ's run is the third run in the filter.
+# Now, we scan right, to find the start of the runs.
+#The first run starts at ind1, the cluster. (n=1).
+# at ind2, is_continuous=1, so ind2 is a part of ind1 cluster.
+# at ind3, is_continuous=1, so ind3 is a part of ind1 cluster.
+# at ind4, is_continuous=0, so at ind4, a new run starts. (n=2).
+# at ind5, is_continuous=0, so at ind5, a new run starts. (n=3).
+# We are finally at the start of dQ's run.
+# Now we scan left till is_continous is 1, and the slot is not empty, and compare eR with value at the kind.
+# Here, eR matched ind5, so we say that the element is in the filter. 
