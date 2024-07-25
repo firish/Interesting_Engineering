@@ -69,7 +69,7 @@
 
 ### The Meta-data bits!!!
 # Three additional bits are used to reconstruct a slot's fingerprint. 
-# 1. is_occupied - is set when a slot is the canonical slot for some key stored (somewhere) in the filter (but not necessarily in this slot).
+# 1. is_occupied - is set when a slot is a canonical slot for some key stored (somewhere) in the filter (but not necessarily in this slot).
 # 2. is_continuation - is set when a slot is occupied but not by the first remainder in a run
 # 3. is_shifted - is set when the remainder in a slot is not in its canonical slot.
 
@@ -86,5 +86,44 @@
 
 
 ### How to do a Lookup? 
+# 1. We hash the key to produce its fingerprint, dH.
+# 2. We separate the q significant bits to get the quotient dQ and the remainder dR.
+# 3. Slot dQ is the key's canonical slot.
+# 4. That slot is empty if its three meta-data bits are false. In that case, the filter does not contain the key.
+
+# 5. If the canonical slot is occupied then we must locate the quotient's run. (the slots that hold remainders belonging to the same quotient)
+# 6. To locate the quotient's run we must first locate the start of the cluster. 
+
+# 7. Starting with the quotient's canonical slot we can scan left to locate the start of the cluster.
+# 8. We scan left looking for a non-empty slot with is_shifted as false. This indicates the start of the cluster. (See table above)
+
+# 9. Then we scan right (from the cluster) to locate the quotient's run's end.
+# 10. We scan right keeping a running count of the number of runs we must skip over. (BECAUSE it is possible that the entire run has been shifted to the right by the encroachment from the left of another run/s).
+# 11. Each slot to the right of the cluster and left of the canonical slot having is_occupied set,
+#     indicates another run to be skipped, so we increment the running count.
+# 12. Each slot having is_continuation clear indicates the start of another run, 
+#     thus the end of the previous run, so we decrement the running count.
+# 13. When the running count reaches zero, we will be scanning the quotient's run.
+
+# 14. We can compare the remainder in each slot in the run with dR. 
+#     If found, we report that the key is (probably) in the filter otherwise we report that the key is definitely not in the filter.
+
+
+### Lookup Example
+# consider, this quotient filter with 8 slots, and the three meta-data bits per slot
+# (is_occupied, is_continuous, is_shifted)
+
+#   000   100   111   011    101   001   000   100
+# |_____|_aR__|_bR__|_cR___|_dR__|_eR__|_____|_fR___|
+
+# Let's say we are hashing element e, which generates eQ=4 and eR, and we want to check if it exists in the filter.
+# First, we see that index=4 is occupied.
+# Next we have to look for the cluster head, so start scanning left.
+# ind4 is shifted, ind3 is shifted, ind2 is shifted, ind1 is not shifted.
+# So, ind1 is cluster start.
+# Now, we start scanning right and maintaining the two counts, oc=occupied count, and cc=continous count, rc=running count (oc-cc).
+# at ind1, oc=1, cc=0, rc=1.
+# at ind2, oc
+
 
 
