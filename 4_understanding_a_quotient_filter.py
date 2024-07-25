@@ -191,4 +191,10 @@
 #    0    1     2      3      4     5     6     7
 
 
+# TODO:
+# Collisions (hard)
+# IMP: Deletion? (why does it not require source of truth) (why no false -ves)
+# Space requirement
+# Use cases
+
 
