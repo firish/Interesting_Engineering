@@ -133,3 +133,62 @@
 # We are finally at the start of dQ's run.
 # Now we scan left till is_continous is 1, and the slot is not empty, and compare eR with value at the kind.
 # Here, eR matched ind5, so we say that the element is in the filter. 
+
+
+### Insertion
+# Insertion follows a path similar to lookup until we ascertain that the key is definitely not in the filter.
+# At that point we insert the remainder in a slot in the current run,
+# a slot chosen to keep the run in sorted order.
+# We shift forward the remainders in any slots in the cluster at or after the chosen slot 
+# and lastly update the slot bits.
+
+# NOTE:
+# 1. Shifting a slot's remainder does not affect the slot's is_occupied bit because it pertains to the slot, 
+#    not the remainder contained in the slot.
+# 2. If we insert a remainder at the start of an existing run,
+#    the previous remainder is shifted and becomes a continuation slot, so we set its is_continuation bit.
+# 3. We set the is_shifted bit of any remainder that we shift.
+
+
+# Insertion Example
+
+# Consider the following filter,
+#   000   100   000   000    100   000   000   100
+# |_____|_bR__|_____|______|_eR__|_____|_____|_fR___|
+#    0    1     2     3      4     5     6     7
+
+# The filter has 3 elements added.
+# The slot each one occupies forms a one-slot run which is also a distinct cluster.
+
+# Adding element c and element d.
+# Element c has a quotient of 1, the same as b.
+# We assume bR < cR. 
+# So, cR must be shifted. to ind2.
+
+#   000   100   011    000    100   000   000   100
+# |_____|_bR__|_cR___|______|_eR__|_____|_____|_fR___|
+#    0    1     2      3      4     5     6     7
+
+# Element d has a quotient of 2.
+# Since its canonical slot is in use, it is shifted into ind3.
+# Since dR is shifted, is_shifted is 1.
+# Since dR had original slot ind2, ind2's is_occupied is set to 1.
+# The runs for quotients 1 and 2 now comprise a cluster starting at ind1.
+
+#   000   100   111    001    100   000   000   100
+# |_____|_bR__|_cR___|_dR___|_eR__|_____|_____|_fR___|
+#    0    1     2      3      4     5     6     7
+
+# Adding element a.
+# a has a quotient of 1.
+# We assume aR < bR, so the remainder must be shifted.
+# ind1 gets aR, ind2 gets bR, ind3 gets cR, ind4 gets dR, ind5 gets eR.
+# is_shifted will be marked as 1, for all of them except aR.
+# is_continuous will be marked for bR.
+
+#   000   100   111    011    101   001   000   100
+# |_____|_aR__|_bR___|_cR___|_dR__|_eR__|_____|_fR___|
+#    0    1     2      3      4     5     6     7
+
+
+
