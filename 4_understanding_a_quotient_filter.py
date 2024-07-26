@@ -191,10 +191,66 @@
 #    0    1     2      3      4     5     6     7
 
 
-# TODO:
-# Collisions (hard)
-# IMP: Deletion? (why does it not require source of truth) (why no false -ves)
+### Deletion
+# 1. Look-up the element
+# 2. Shift bits to the left, if it is part of a run, and not first remainder of the run
+# 3. Adjust the bits as needed. 
+# (is_ocupied of a slot may change)
+# (is_shifted all values shifting left may change)
+# (is_continuous may change for the next bit if it becomes the first remainder of the run after deletion)
+
+# Example
+ #  000   100   111   011    101   001   000   100
+ #|_____|_aR__|_bR__|_cR___|_dR__|_eR__|_____|_fR___|
+ #   0    1     2     3      4     5     6     7
+
+# Delete element b
+# Hash the Element b: Assume bQ = 1 and bR
+# bR is found at ind2
+# Remove bR from ind2.
+# Shift cR from index 3 to index 2.
+# Shift dR from index 4 to index 3.
+# Shift eR from index 5 to index 4.
+
+ #  000   100   011   101    001   000   000   100
+ #|_____|_aR__|_cR__|_dR___|_eR__|_____|_____|_fR___|
+ #   0    1     2     3      4     5     6     7
+
+
+### IMP
+### How do we resize a quotient filter without hashing?
+# When increasing the size of the quotient filter, you effectively increase the number of slots available. 
+# This typically involves increasing the value of q, which in turn increases m = 2^q.
+# However, since the quotient filter maintains a portion of the hash (quotient and remainder), 
+# you can directly move entries without full rehashing.
+# Since the remainder and quotient together form the hash fingerprint, only the position (bucket) in the new filter changes. 
+
+# m = number of slots (2^q)
+# q = quotient bits
+# p = hash length in bits
+# r = remainder bits (p-q)
+
+# If the filter had 8 bits
+# a hashed to 01001110, p = 8, m = 8 (2^3), q = 3, r = 5
+# quotient = 010 (ind2), and r = 01110 
+
+# Now, if we double filter to 2^4 = 16
+# p= 8, m = 16 (2^4), q = 4, r = 4
+# We have a's hash as 01001110
+# So, the new position is 0100 or ind4, with value 1110
+
+
+
+### Use cases (from Wikipedia)
+# 1. Database Proxy (see above)
+# 2. (IMP) Two quotient filters can be efficiently merged without affecting their false positive rates. This is not possible with Bloom filters.
+# 3. Quotient filters have some tolerance for duplicate enteries 
+# 4. (IMP) LSM Trees (Log Structured Merge Tree) use quotient filters
+# 5. (IMP) SAMT Trees (Sorted Array Merge Tree) use quotient filters 
+# 6. (IMP) Wanna-B Trees use quotient filters
+
+
 # Space requirement
-# Use cases
+
 
 
