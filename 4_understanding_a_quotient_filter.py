@@ -250,7 +250,23 @@
 # 6. (IMP) Wanna-B Trees use quotient filters
 
 
-# Space requirement
+### Space requirement
+# WHY NOT ALWAYS USE QUOTIENT FILTERS OVER BLOOM FILTERS?
+
+# We start with an acceptable value of probability (threshold), estimated n, and a constant k,
+# and calculate m using the magic formula (noted above).
+# If we wanted a false positive rate of just 1%, will have up to 10M elements in the set, and will use 3 hash functions,
+# m should be 12,364,167 bits or 1.47 MB
+
+# In contrast, if we stored them in a quotient filter,
+# Total additional bits per slot = 3 bits
+# The remainder (r) and quotient (q) bits are approximately similar to the Bloom filter requirements.
+# Hence, total space required = m * (r + 3) 
+# For this example, it would be ~ 12.5 MB
+
+# Plus, lookup and insertion are faster in bloom filters.
+# Plus, bloom filter implementation can be parallelized in hardware implementation easily. 
+
 
 
 
