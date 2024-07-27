@@ -23,6 +23,10 @@
 #, and each hash function provides an index into one of these two tables. 
 # It is also possible for both hash functions to provide indexes into a single table.
 
+# A typical start choice for the hash functions is,
+# h1(k) = k mod 11 
+# h2(k) = (k/11) mod 11
+
 
 ### Lookup
 # hash table T is divided into T1 and T2, with hash function h1, and h2.
@@ -45,3 +49,20 @@
 # To avoid an infinite loop, a threshold Max-Loop is specified,
 # If the number of iterations exceeds this fixed threshold,
 # T1 and T2 are rehashed with new hash functions and the insertion procedure repeats.
+
+# IMP (Theory)
+# Insertions succeed in expected constant time,
+# even considering the possibility of having to rebuild the table,
+# as long as the number of keys is kept below half of the capacity of the hash table (load factor < 0.50)
+
+# IMP (Practice)
+# In practice, cuckoo hashing is about 20–30% slower than linear probing, 
+# which is the fastest of the common approaches.
+# The reason is that cuckoo hashing often causes two cache misses per search,
+# instead of 1 in linear probing, and does not get the benefit of the locality of reference like linear probing.
+# However, the O(1) lookup time guarantee is stronger than linear probing, (does not need any kind of probing for lookup like linear probing)
+# making Cuckoo hashing value for certain types of applications.
+
+
+
+
