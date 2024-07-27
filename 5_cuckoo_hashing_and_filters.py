@@ -12,4 +12,36 @@
 
 ### Operation / Algorithm
 # Cuckoo hashing is a form of "open addressing" (see 1.)
-which each non-empty cell of a hash table contains a key
+# Every non-empty cell of a hash table contains a key
+# A hash function is used to determine the location of each key and its presence in the table
+# However, open addressing suffers from collisions when more than one key is mapped to the same cell.
+
+# The basic idea of cuckoo hashing is to resolve collisions by using two hash functions instead of only one.
+# This provides two possible locations in the hash table for each key. 
+# In one of the commonly used variants of the algorithm, 
+# the hash table is split into two smaller tables of equal size, 
+#, and each hash function provides an index into one of these two tables. 
+# It is also possible for both hash functions to provide indexes into a single table.
+
+
+### Lookup
+# hash table T is divided into T1 and T2, with hash function h1, and h2.
+# Lookup = T1[h1(x)] = x or T2[h2(x)] = x
+# Worst case time is O(1)
+
+### Deletion
+# Deletion is performed in O(1) time since probing is not involved.
+
+### Insertion
+# 1. When inserting a new item with key 𝑥,
+# the first step involves examining if slot h1(x) of table T1 is occupied.
+# If it is not, the item is inserted in that slot.
+
+# However, if the slot is occupied,
+# the existing item x' is removed, and x is inserted in its place.
+# Then x' is inserted into T2 by following the same procedure.
+# The process continues until an empty position is found to insert the key.
+
+# To avoid an infinite loop, a threshold Max-Loop is specified,
+# If the number of iterations exceeds this fixed threshold,
+# T1 and T2 are rehashed with new hash functions and the insertion procedure repeats.
