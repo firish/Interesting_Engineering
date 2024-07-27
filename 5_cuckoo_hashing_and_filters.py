@@ -35,8 +35,10 @@
 # Lookup = T1[h1(x)] = x or T2[h2(x)] = x
 # Worst case time is O(1)
 
+
 ### Deletion
 # Deletion is performed in O(1) time since probing is not involved.
+
 
 ### Insertion
 # 1. When inserting a new item with key 𝑥,
@@ -64,6 +66,7 @@
 # instead of 1 in linear probing, and does not get the benefit of the locality of reference like linear probing.
 # However, the O(1) lookup time guarantee is stronger than linear probing, (does not need any kind of probing for lookup like linear probing)
 # making Cuckoo hashing value for certain types of applications.
+
 
 
 ### No system design exists without trade-offs!
