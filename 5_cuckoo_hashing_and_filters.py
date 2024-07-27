@@ -23,9 +23,11 @@
 #, and each hash function provides an index into one of these two tables. 
 # It is also possible for both hash functions to provide indexes into a single table.
 
-# A typical start choice for the hash functions is,
-# h1(k) = k mod 11 
-# h2(k) = (k/11) mod 11
+# A typical start choice for the hash functions is universal hashing,
+# provides a family of hash functions that are designed to be independent and uniformly distributed.
+# h1(k) = ((a1.k + b1) mod p) mod m
+# h2(k) = ((a2.k + b2) mod p) mod m
+# where, a1, a2, b1, b2, are random coefficients, p is a large prime number, and m is the hash table size
 
 
 ### Lookup
@@ -52,7 +54,7 @@
 
 # IMP (Theory)
 # Insertions succeed in expected constant time,
-# even considering the possibility of having to rebuild the table,
+# Even considering the possibility of having to rebuild the table,
 # as long as the number of keys is kept below half of the capacity of the hash table (load factor < 0.50)
 
 # IMP (Practice)
@@ -64,5 +66,16 @@
 # making Cuckoo hashing value for certain types of applications.
 
 
+### No system design exists without trade-offs!
+# There have been many variations to cuckoo hashing to try and improve load factor tolerance and reduce rehashing of the tables.
+# The most famous one is to divide the hash table into 3 hash tables and use 3 hash functions
+# This simple change increases load factor tolerance to 91%,
+# but makes lookups and insertions slightly slower. 
 
-
+# Another variation of cuckoo hashing that has been studied is cuckoo hashing with a stash.
+# The stash, in this data structure, is an array of a constant number of keys,
+# used to store keys that cannot successfully be inserted into the main hash table of the structure.
+# This modification reduces the failure rate of cuckoo hashing.
+#  A stash can be used in combination with more than two hash functions or with blocked cuckoo hashing,
+# to achieve both high load factors and small failure rates.
+# However, larger stashes also mean slower searches for keys that are not present or are in the stash.
