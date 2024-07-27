@@ -75,6 +75,12 @@
 # This simple change increases load factor tolerance to 91%,
 # but makes lookups and insertions slightly slower. 
 
+# Another variation is a blocking cuckoo hashing
+# Simply put, it involved dividing the hash table into b blocks and using b hash functions.
+# Instead of hashing to a slot, the hash functions hash to a block (4, 8, 16, or so slots)
+# The keys are hashed into blocks, and then we can use something like linear probing within the blocks
+# For insertion, we hash into a block, and if it is full, we use the same cuckoo hashing principle
+
 # Another variation of cuckoo hashing that has been studied is cuckoo hashing with a stash.
 # The stash, in this data structure, is an array of a constant number of keys,
 # used to store keys that cannot successfully be inserted into the main hash table of the structure.
@@ -82,3 +88,26 @@
 #  A stash can be used in combination with more than two hash functions or with blocked cuckoo hashing,
 # to achieve both high load factors and small failure rates.
 # However, larger stashes also mean slower searches for keys that are not present or are in the stash.
+
+
+
+### Cuckoo Filter (AMQ)
+# A cuckoo filter is a space-efficient probabilistic data structure that is used to test whether an element is a member of a set
+# A query returns either "possibly in the set" or "definitely not in set".
+# (IMP) A cuckoo filter can also delete existing items, which is not supported by Bloom filters.
+
+
+
+### Algo
+# A cuckoo filter uses a hash table based on cuckoo hashing to store the fingerprints of items
+# The data structure is broken into buckets of some size 𝑏
+# To insert the fingerprint of an item x, two potential buckets are calculated, h1(x) and h2(x)
+
+# h1(x) = hash(x)
+# h2(x) = h1(x) XOR hash(fingerprint(x))
+
+
+
+
+
+
