@@ -17,3 +17,10 @@
 # Via the linked hierarchy, these two elements link to elements of the next sparsest subsequence, 
 # where searching is continued until finally searching in the full sequence. 
 
+
+### Implementation
+# A skip list is built in layers.
+# The bottom layer 1 is an ordinary ordered linked list.
+# Each higher layer acts as an "express lane" for the lists below,
+# where an element in layer i appears in layer i+1 with a probability of p.
+# NOTE: The common values for p are 1/2 and 1/4.
