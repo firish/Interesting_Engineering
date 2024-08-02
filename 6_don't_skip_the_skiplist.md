@@ -45,3 +45,32 @@ The expected steps at each lane is p, and the overall extected lookup time compl
 
 ### Insertion
 ![skip list insertion](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Skip_list_add_element-en.gif/800px-Skip_list_add_element-en.gif)
+
+Insertions and deletions are implemented much like the corresponding linked-list operations,
+However, the "TALL" elements (that extend down),
+Must be inserted/deleted from two lists
+
+
+### Deciding the element placement
+Most commonly used methodology is the random promotion.
+When an element is inserted, it is first placed in the bottom-level linked list (level 0).
+The element is then promoted to higher levels based on a random coin flip.
+This process continues until the coin flip fails (e.g., results in tails) or the maximum level is reached.
+
+The second most common method is the quasi-randomized method,
+A common approach is to use a fixed probability (say p = 60%)
+Each time an element is inserted at level i, there is p% chance of promotion to level i+1.
+
+IMP:
+These stratergies ensure,
+1. The insertions to higher levels follow an exponential decay pattern
+2. The expected height of an element is proportional to the logarithm of the number of elements
+3. This ensures logarithmic lookups, insertions, and deletions.
+4. The probabilistic level assignment ensures that the skip list remains balanced with high probability
+
+NOTE: some rare implementations will promote the elements on criteria like number of times they were looked up, so popular elements rise to the top and are accesed quickly. 
+These patterns are called as "adaptive" or "self-tunning" skip lists.
+
+While promoting elements based on access frequency can improve the efficiency of lookups for frequently accessed elements, 
+it also requires mechanisms to periodically rebalance the skip list to ensure it doesn't become overly skewed.
+
