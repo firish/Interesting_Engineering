@@ -27,3 +27,21 @@ NOTE: The common values for p are 1/2 and 1/4.
 
 ![skip list wiki](https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Skip_list.svg/800px-Skip_list.svg.png)
 
+A schematic picture of the skip list data structure. 
+Each box with an arrow represents a pointer and a row is a linked list giving a sparse subsequence; 
+the numbered boxes (in yellow) at the bottom represent the ordered data sequence. 
+Searching proceeds downwards from the sparsest subsequence at the top until consecutive elements bracketing the search element are found.
+
+IMP: A skip list will have log (base 1/p) n skip lists, where p is the probability and n is number of elements.
+
+### Lookup
+A search for a target element begins at the head element in the top list, 
+and proceeds horizontally until the current element is greater than or equal to the target.
+If the current element is equal to the target, it has been found.  
+If the current element is greater than the target, or the search reaches the end of the linked list,
+the procedure is repeated after returning to the previous element and dropping down vertically to the next lower list.
+The expected steps at each lane is p, and the overall extected lookup time complexity is O(log n).
+
+
+### Insertion
+![skip list insertion](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Skip_list_add_element-en.gif/800px-Skip_list_add_element-en.gif)
