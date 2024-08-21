@@ -100,3 +100,8 @@ It is crucial to understand that while RAID can protect against hardware failure
 
 - ![RAID 50](https://github.com/user-attachments/assets/838d1415-3d8b-42c4-b75e-28c7c00ac5fb)
 
+
+overkill bonus, "PLAID RAID" or the "RAID 100"
+
+![image](https://github.com/user-attachments/assets/06fe7843-c2a8-49b5-8edc-9883946c69d4)
+
