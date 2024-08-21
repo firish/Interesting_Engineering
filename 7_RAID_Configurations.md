@@ -1,15 +1,23 @@
 # RAID (Redundant Array of Independent Disks)
 
-RAID stands for Redundant Array of Independent (or Inexpensive) Disks. It is a technology used to combine multiple hard drives into a single unit to improve performance, increase storage capacity, and provide redundancy (protection against data loss). RAID is essential for creating reliable and large data storage systems from general-purpose hard drives. It is crucial to understand that while RAID can protect against hardware failures, it is not a substitute for proper backups, as it doesn't protect against catastrophic events (like fire) or software-related errors (such as user mistakes or malware).
+RAID stands for Redundant Array of Independent (or Inexpensive) Disks. 
+It is a technology used to combine multiple hard drives into a single unit to improve performance, increase storage capacity, and provide redundancy (protection against data loss). 
+RAID is essential for creating reliable and large data storage systems from general-purpose hard drives. 
+It is crucial to understand that while RAID can protect against hardware failures, it is not a substitute for proper backups, as it doesn't protect against catastrophic events (like fire) or software-related errors (such as user mistakes or malware).
+
 
 ## Standard RAID Levels
 
 ### RAID 0 - Striping
 - **Description**: RAID 0 splits (or stripes) data evenly across two or more disks without redundancy or fault tolerance. Each chunk of data is spread across all the disks, which means that no single disk contains a complete file. This setup is optimized for speed.
-- **Explanation**: **Striping** refers to breaking down data into smaller chunks and spreading them across multiple disks. **Fault tolerance** is the ability of a system to continue operating properly in the event of the failure of one or more of its components. RAID 0 offers no fault tolerance; if one disk fails, all data is lost.
+- **Striping** refers to breaking down data into smaller chunks and spreading them across multiple disks.
+- **Fault tolerance** is the ability of a system to continue operating properly in the event of the failure of one or more of its components. RAID 0 offers no fault tolerance; if one disk fails, all data is lost.
 - **Advantages**: Increases read/write performance since multiple disks are used simultaneously. Suitable for applications where speed is critical, such as video editing or gaming.
 - **Disadvantages**: No protection against data loss; the failure of any disk in the array results in the loss of all data.
 - **Use Case**: Ideal for non-critical systems where high performance is needed, such as in gaming rigs or temporary data processing systems where data loss is acceptable.
+
+- ![RAID 0](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/RAID_0.svg/150px-RAID_0.svg.png)
+  
 
 ### RAID 1 - Mirroring
 - **Description**: RAID 1 creates an exact copy (or mirror) of the data on two or more disks. Each disk in the array contains the same data, offering redundancy but no increase in storage capacity.
