@@ -112,7 +112,8 @@ Raft ensures that each state machine executes the same commands in the same orde
 ### Cluster Membership Change
 Raft handles changes to the cluster, such as adding or removing servers, through a two-phase approach:
 1. The cluster enters a transitional configuration called **joint consensus**.
-2. After the joint consensus is committed, the system transitions to the new configuration, maintaining continuous availability and preventing split-brain scenarios.
+Joint Consensus Phase: During this phase, the cluster temporarily operates under a "joint" configuration that includes both the old and new configurations. This means that decisions (such as electing a leader or committing log entries) require agreement from a majority of nodes in both the old and the new configurations. Once the joint configuration is committed and all nodes are synchronized, the system transitions fully to the new configuration, where only the new set of servers is recognized.
+2. After the joint consensus is committed, the system transitions to the new configuration, maintaining continuous availability and preventing split-brain scenarios (when a distributed system mistakenly believes there are two separate clusters or leaders, leading to conflicting decisions and potential data inconsistency).
 
 ![image](https://github.com/user-attachments/assets/512ec9c9-9fcf-48cf-9616-57889bafee94)
 
