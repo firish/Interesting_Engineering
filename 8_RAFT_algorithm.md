@@ -7,6 +7,14 @@ It is essential for distributed systems that require consistent and reliable ope
 
 ![image](https://github.com/user-attachments/assets/494406f1-8842-4ebd-9418-dd21353ec576)
 
+
+### Intended use of RAFT
+- Raft clusters provide fault tolerance, redundancy, and high availability, ensuring that the system remains operational and consistent even in the face of failures.
+- The primary advantage of having multiple servers is fault tolerance. If a single server fails, the system remains operational because other servers can take over. Raft ensures that as long as a majority of servers are up, the system can continue to process requests and maintain consistency.
+- Multiple servers provide redundancy, meaning that the data and state of the system are replicated across all servers. This redundancy is critical for preventing data loss in case of server failures.
+- While Raft's consistency model means that write operations (or any operation that changes the state) are handled by the leader, read operations can sometimes be served by followers, depending on the consistency requirements. For example, if strong consistency isn't required, followers can serve read requests, which helps distribute the load.
+- RAFT still has a write bottleneck, and does not support paralell execution across servers, as servers do same set of instructions and serially.
+
 ## What is a Consensus Algorithm?
 A consensus algorithm allows a group of machines to operate cohesively and agree on the system state, even if some machines fail. 
 These systems can continue operating even when some servers go down, thanks to the consistency maintained by the consensus algorithm.
@@ -113,6 +121,21 @@ In practice, logs cannot grow indefinitely. Raft addresses this by allowing each
 ### Client Interaction
 - **Locating the Leader**: Clients interact with the cluster leader for all requests. If the client connects to a server that is not the leader, the server will redirect the client to the current leader.
 - **Linearizable Semantics**: Raft ensures that both writes and reads are linearizable, meaning every operation appears to execute instantaneously and exactly once. This guarantees that clients always receive the most up-to-date state.
+
+
+## A simplified execution chronology of RAFT
+1. Client Sends a Request: A client sends a request to the Raft cluster. The request is usually a command that needs to be executed, such as updating a value in a database.
+2. Leader Receives the Request: The leader receives the client's request. The leader is the only node that can accept and process client requests directly.
+3. Leader Appends the Request to Its Log: The leader appends the client's command as a new entry in its own log. This log entry is not yet committed, meaning it has not been agreed upon by a majority of the cluster.
+4. Leader Sends the Log Entry to Followers: The leader then sends the new log entry to all of the followers via the AppendEntries RPC. This message includes the new log entry and the index of the previous entry in the log, ensuring that followers can verify the consistency of their logs.
+5. Followers Append the Log Entry: Each follower receives the AppendEntries RPC from the leader. If the follower's log matches the leader's up to the previous entry, the follower appends the new log entry to its log. If there’s a mismatch (due to a prior inconsistency), the follower will reject the entry, and the leader will resolve the inconsistency by adjusting the follower's log to match its own.
+6. Followers Acknowledge the Leader: Once the followers have successfully appended the log entry, they send an acknowledgment back to the leader.
+7. Leader Commits the Log Entry: The leader waits until it has received acknowledgments from a majority of the followers. Once a majority acknowledges the entry, the leader considers the entry committed.
+8. Leader Applies the Log Entry: After committing the log entry, the leader applies the command to its local state machine (e.g., updates the database). This means the command is now officially part of the cluster’s state.
+9. Leader Notifies Followers to Commit: The leader then includes the index of the highest committed log entry in subsequent AppendEntries RPCs. This informs the followers that the log entry is committed and that they should apply it to their state machines as well.
+10. Followers Apply the Log Entry: Upon receiving the notification that the entry is committed, each follower applies the entry to its state machine, ensuring that all nodes in the cluster have consistent states.
+11. Leader Responds to the Client: Finally, the leader sends a response back to the client, indicating that the request has been successfully processed and the command has been applied.
+
 
 ## Real-Life Use Cases of Raft
 
