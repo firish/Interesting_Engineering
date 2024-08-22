@@ -106,6 +106,8 @@ The leader maintains a **nextIndex** for each follower, indicating the next log 
 Raft ensures that each state machine executes the same commands in the same order. To prevent inconsistencies:
 - **Election Restriction**: A candidate can only be elected as leader if its log contains all entries committed in previous terms. This ensures that any leader has the most up-to-date and complete log, preventing the leader from inadvertently overwriting committed entries in followers' logs.
 
+- **Note:** In Raft, a term doesn't have a fixed length in terms of time. Instead, it represents a logical period during which a leader is active. Each term begins with a new election, where servers vote to elect a leader. The term ends when the current leader fails, steps down, or when a new election is triggered due to a leader losing the majority's confidence (for example, if the leader becomes unreachable).
+
 ## Additional Aspects of Raft
 ### Cluster Membership Change
 Raft handles changes to the cluster, such as adding or removing servers, through a two-phase approach:
