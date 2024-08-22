@@ -22,10 +22,11 @@ The role of a consensus algorithm like Raft is to keep this replicated log consi
 
 
 ## Raft Overview
-Raft achieves consensus by electing a leader who manages the replicated log. The leader accepts log entries from clients, replicates them across other servers (followers), and informs them when it is safe to apply these entries to their state machines.
+Raft achieves consensus by electing a leader who manages the replicated log.
+The leader accepts log entries from clients, replicates them across other servers (followers), and informs them when it is safe to apply these entries to their state machines.
 
 ### Key Components of Raft:
-- **Leader Election**: One server is elected as the leader for a given term. The leader manages the log and replicates it across other servers. A new leader is elected when the existing leader fails.
+- **Leader Election**: One server is elected as the leader for a given term. The leader manages the log and replicates it across other servers. A new leader is elected when the existing leader fails, or the term ends.
 - **Log Replication**: The leader receives client requests, appends these commands to its log, and then replicates them across other servers to ensure consistency.
 - **Safety**: Raft ensures that if any server has applied a particular log entry to its state machine, no other server can apply a different command for the same log index.
 
@@ -42,8 +43,16 @@ Servers transition between states under specific conditions:
 - A **candidate** that secures a majority of votes becomes the **leader**.
 - The **leader** continues to operate until it fails.
 
+![image](https://github.com/user-attachments/assets/d0c7526a-ba4c-4ed0-ba88-01d48959aa2e)
+
+
 ### Term
-Raft divides time into **terms**, each starting with an election where one or more candidates try to become the leader. Each server stores the current term number, which is used to detect obsolete information like stale leaders.
+Raft divides time into **terms**.
+Each starting with an election where one or more candidates try to become the leader. 
+Each server stores the current term number, which is used to detect obsolete information like stale leaders.
+
+![image](https://github.com/user-attachments/assets/156b3a8e-1ded-4f6b-bef3-7801924c3197)
+
 
 ### Communications
 Raft servers communicate using **Remote Procedure Calls (RPCs)**, with two main types:
@@ -57,6 +66,9 @@ To start an election, the follower:
 1. Increments its current term number, indicating the start of a new term.
 2. Transitions to a candidate and votes for itself.
 3. Sends out RequestVote RPCs to all other servers.
+
+During the election,
+1. Each server (follower) can only vote once per term, and it will vote for the first candidate it hears from, as long as that candidate's log is at least as up-to-date as its own.
 
 **Possible Outcomes**:
 1. **Winning the Election**: The candidate becomes the leader if it secures a majority of the votes.
@@ -79,6 +91,9 @@ Log inconsistencies may arise if a leader crashes, causing some followers to hav
 ### Synchronizing Logs
 The leader maintains a **nextIndex** for each follower, indicating the next log entry to be sent. If inconsistencies are detected, the leader decrements the nextIndex until the logs match. The leader then sends the correct entries, ensuring log consistency across the cluster.
 
+![image](https://github.com/user-attachments/assets/6fbf096e-0461-4c8e-8fb3-4df29e53c250)
+
+
 ## Safety
 Raft ensures that each state machine executes the same commands in the same order. To prevent inconsistencies:
 - **Election Restriction**: A candidate can only be elected as leader if its log contains all entries committed in previous terms. This ensures that any leader has the most up-to-date and complete log, preventing the leader from inadvertently overwriting committed entries in followers' logs.
@@ -88,6 +103,9 @@ Raft ensures that each state machine executes the same commands in the same orde
 Raft handles changes to the cluster, such as adding or removing servers, through a two-phase approach:
 1. The cluster enters a transitional configuration called **joint consensus**.
 2. After the joint consensus is committed, the system transitions to the new configuration, maintaining continuous availability and preventing split-brain scenarios.
+
+![image](https://github.com/user-attachments/assets/512ec9c9-9fcf-48cf-9616-57889bafee94)
+
 
 ### Log Compaction
 In practice, logs cannot grow indefinitely. Raft addresses this by allowing each server to independently take snapshots of its log. These snapshots cover all committed entries and are stored in stable storage. Log compaction reduces the log size and helps maintain consistency, especially during server restarts.
@@ -109,6 +127,3 @@ In practice, logs cannot grow indefinitely. Raft addresses this by allowing each
 ### 3. **Apache Kafka Raft (KRaft)**:
    - **Usage**: KRaft uses Raft for metadata management.
    - **Context**: Apache Kafka uses KRaft to replace the traditional ZooKeeper-based metadata management with a more streamlined, Raft-based approach, improving consistency and fault tolerance.
-
-## Conclusion
-In this exploration of the Raft consensus algorithm, we have covered its essential components, including leader election, log replication, safety measures, log compaction, and cluster membership changes. Additionally, we examined Raft’s approach to client interactions and its consistency guarantees. Raft’s ability to maintain reliable, consistent operations in distributed systems makes it a crucial component in modern distributed networks.
