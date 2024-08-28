@@ -252,3 +252,27 @@ X----------->|->|        |       |  Accept!(N,I+1,W) (Aux not participating)
 |            |  |        |       |
 ```
 
+
+### variation 3: Fast Paxos
+
+Fast Paxos generalizes Basic Paxos to reduce end-to-end message delays. In Basic Paxos, the message delay from client request to learning is 3 message delays. Fast Paxos allows 2 message delays, but requires that (1) the system be composed of 3f+ 1 acceptors to tolerate up to f faults (instead of the classic 2f+1), and (2) the Client to send its request to multiple destinations.
+
+Intuitively, if the leader has no value to propose, then a client could send an Accept! message to the Acceptors directly. The Acceptors would respond as in Basic Paxos, sending Accepted messages to the leader and every Learner achieving two message delays from Client to Learner.
+
+### variation 4: Byzantine Paxos
+
+Paxos may also be extended to support arbitrary failures of the participants, including lying, fabrication of messages, collusion with other participants, selective non-participation, etc. These types of failures are called Byzantine failures, 
+
+Byzantine Paxos introduced by Castro and Liskov adds an extra message (Verify) which acts to distribute knowledge and verify the actions of the other processors:
+
+Paxos with Verify message
+```
+Client   Proposer      Acceptor     Learner
+   |         |          |  |  |       |  |
+   X-------->|          |  |  |       |  |  Request
+   |         X--------->|->|->|       |  |  Accept!(N,I,V)
+   |         |          X<>X<>X       |  |  Verify(N,I,V) - BROADCAST
+   |         |<---------X--X--X------>|->|  Accepted(N,V)
+   |<---------------------------------X--X  Response(V)
+   |         |          |  |  |       |  |
+```
