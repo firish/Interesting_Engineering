@@ -163,3 +163,92 @@ Proposer    Acceptor     Learner
     |       |  |  |       |  |
 ```
 
+
+
+## Paxos Variations
+
+### variation 1: Multi-Paxos
+
+A typical deployment of Paxos requires a continuous stream of agreed values acting as commands to a distributed state machine. If each command is the result of a single instance of the Basic Paxos protocol, a significant amount of overhead would result.
+
+If the leader is relatively stable, phase 1 becomes unnecessary. Thus, it is possible to skip phase 1 for future instances of the protocol with the same leader.
+
+To achieve this, the round number I is included along with each value which is incremented in each round by the same Leader. Multi-Paxos reduces the failure-free message delay (proposal to learning) from 4 delays to 2 delays.
+
+Initial Multi-Paxos
+```
+Client   Proposer      Acceptor     Learner
+   |         |          |  |  |       |  | --- First Request ---
+   X-------->|          |  |  |       |  |  Request
+   |         X--------->|->|->|       |  |  Prepare(N)
+   |         |<---------X--X--X       |  |  Promise(N,I,{Va,Vb,Vc})
+   |         X--------->|->|->|       |  |  Accept!(N,I,V)
+   |         |<---------X--X--X------>|->|  Accepted(N,I,V)
+   |<---------------------------------X--X  Response
+   |         |          |  |  |       |  |
+```
+
+Multi-paxos skipping phase 1
+```
+Client   Proposer       Acceptor     Learner
+   |         |          |  |  |       |  |  --- Following Requests ---
+   X-------->|          |  |  |       |  |  Request
+   |         X--------->|->|->|       |  |  Accept!(N,I+1,W)
+   |         |<---------X--X--X------>|->|  Accepted(N,I+1,W)
+   |<---------------------------------X--X  Response
+   |         |          |  |  |       |  |
+```
+
+A common deployment of the Multi-Paxos consists in collapsing the role of the Proposers, Acceptors and Learners to "Servers". So, in the end, there are only "Clients" and "Servers".
+
+The following diagram represents the first "instance" of a basic Paxos protocol, when the roles of the Proposer, Acceptor and Learner are collapsed to a single role, called the "Server".
+
+Multi-Paxos with "servers" (with phase 1)
+```
+Client      Servers
+   |         |  |  | --- First Request ---
+   X-------->|  |  |  Request
+   |         X->|->|  Prepare(N)
+   |         |<-X--X  Promise(N, I, {Va, Vb})
+   |         X->|->|  Accept!(N, I, Vn)
+   |         X<>X<>X  Accepted(N, I)
+   |<--------X  |  |  Response
+   |         |  |  |
+```
+
+Multi-Paxos with "servers" (without phase 1)
+```
+Client      Servers
+   X-------->|  |  |  Request
+   |         X->|->|  Accept!(N,I+1,W)
+   |         X<>X<>X  Accepted(N,I+1)
+   |<--------X  |  |  Response
+   |         |  |  |
+```
+
+
+### variation 2: Cheap Paxos
+
+Cheap Paxos extends Basic Paxos to tolerate F failures with F+1 main processors and F auxiliary processors by dynamically reconfiguring after each failure.
+
+This reduction in processor requirements comes at the expense of liveness; if too many main processors fail in a short time, the system must halt until the auxiliary processors can reconfigure the system. During stable periods, the auxiliary processors take no part in the protocol.
+
+idea:
+"With only two processors p and q, one processor cannot distinguish failure of the other processor from failure of the communication medium. A third processor is needed. However, that third processor does not have to participate in choosing the sequence of commands. It must take action only in case p or q fails, after which it does nothing while either p or q continues to operate the system by itself. The third processor can therefore be a small/slow/cheap one, or a processor primarily devoted to other tasks."
+
+An example involving three main acceptors, one auxiliary acceptor and quorum size of three, showing failure of one main processor and subsequent reconfiguration:
+```
+Proposer     Main       Aux    Learner
+|            |  |  |     |       |  -- Phase 2 --
+X----------->|->|->|     |       |  Accept!(N,I,V)
+|            |  |  !     |       |  --- FAIL! ---
+|<-----------X--X--------------->|  Accepted(N,I,V)
+|            |  |        |       |  -- Failure detected (only 2 accepted) --
+X----------->|->|------->|       |  Accept!(N,I,V)  (re-transmit, include Aux)
+|<-----------X--X--------X------>|  Accepted(N,I,V)
+|            |  |        |       |  -- Reconfigure : Quorum = 2 --
+X----------->|->|        |       |  Accept!(N,I+1,W) (Aux not participating)
+|<-----------X--X--------------->|  Accepted(N,I+1,W)
+|            |  |        |       |
+```
+
