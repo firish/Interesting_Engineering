@@ -53,3 +53,113 @@ Paxos can be used for leader election by having a Proposer propose itself (or an
 
 ![image](https://github.com/user-attachments/assets/65b34d36-827c-41c6-8f83-ced42a484d00)
 
+
+### Scenario 1: Acceptor Failure
+
+In this scenario, one of the Acceptors within the quorum fails. Despite this failure, the Basic Paxos protocol still succeeds as the remaining two Acceptors continue to form a valid quorum, allowing the protocol to proceed.
+```
+Client   Proposer      Acceptor     Learner
+   |         |          |  |  |       |  |
+   X-------->|          |  |  |       |  |  Request
+   |         X--------->|->|->|       |  |  Prepare(1)
+   |         |          |  |  !       |  |  !! FAIL !!
+   |         |<---------X--X          |  |  Promise(1,{Va, Vb, null})
+   |         X--------->|->|          |  |  Accept!(1,V)
+   |         |<---------X--X--------->|->|  Accepted(1,V)
+   |<---------------------------------X--X  Response
+   |         |          |  |          |  |
+```
+
+### Scenario 2: Basic Paxos when a redundant learner fails
+
+In the following case, one of the (redundant) Learners fails, but the Basic Paxos protocol still succeeds.
+
+```
+Client Proposer         Acceptor     Learner
+   |         |          |  |  |       |  |
+   X-------->|          |  |  |       |  |  Request
+   |         X--------->|->|->|       |  |  Prepare(1)
+   |         |<---------X--X--X       |  |  Promise(1,{Va,Vb,Vc})
+   |         X--------->|->|->|       |  |  Accept!(1,V)
+   |         |<---------X--X--X------>|->|  Accepted(1,V)
+   |         |          |  |  |       |  !  !! FAIL !!
+   |<---------------------------------X     Response
+   |         |          |  |  |       |
+```
+
+### Scenario 3: Basic Paxos when a Proposer fails
+
+In this case, a Proposer fails after proposing a value, but before the agreement is reached. Specifically, it fails in the middle of the Accept message, so only one Acceptor of the Quorum receives the value. Meanwhile, a new Leader (a Proposer) is elected (but this is not shown in detail). Note that there are 2 rounds in this case (rounds proceed vertically, from the top to the bottom).
+
+```
+Client  Proposer        Acceptor     Learner
+   |      |             |  |  |       |  |
+   X----->|             |  |  |       |  |  Request
+   |      X------------>|->|->|       |  |  Prepare(1)
+   |      |<------------X--X--X       |  |  Promise(1,{Va, Vb, Vc})
+   |      |             |  |  |       |  |
+   |      |             |  |  |       |  |  !! Leader fails during broadcast !!
+   |      X------------>|  |  |       |  |  Accept!(1,V)
+   |      !             |  |  |       |  |
+   |         |          |  |  |       |  |  !! NEW LEADER !!
+   |         X--------->|->|->|       |  |  Prepare(2)
+   |         |<---------X--X--X       |  |  Promise(2,{V, null, null})
+   |         X--------->|->|->|       |  |  Accept!(2,V)
+   |         |<---------X--X--X------>|->|  Accepted(2,V)
+   |<---------------------------------X--X  Response
+   |         |          |  |  |       |  |
+```
+
+### Scenario 4: Basic Paxos when multiple Proposers conflict
+
+The most complex case is when multiple Proposers believe themselves to be Leaders. For instance, the current leader may fail and later recover, but the other Proposers have already re-selected a new leader. The recovered leader has not learned this yet and attempts to begin one round in conflict with the current leader. In the diagram below, 4 unsuccessful rounds are shown, but there could be more (as suggested at the bottom of the diagram).
+
+```
+Client   Proposer       Acceptor     Learner
+   |      |             |  |  |       |  |
+   X----->|             |  |  |       |  |  Request
+   |      X------------>|->|->|       |  |  Prepare(1)
+   |      |<------------X--X--X       |  |  Promise(1,{null,null,null})
+   |      !             |  |  |       |  |  !! LEADER FAILS
+   |         |          |  |  |       |  |  !! NEW LEADER (knows last number was 1)
+   |         X--------->|->|->|       |  |  Prepare(2)
+   |         |<---------X--X--X       |  |  Promise(2,{null,null,null})
+   |      |  |          |  |  |       |  |  !! OLD LEADER recovers
+   |      |  |          |  |  |       |  |  !! OLD LEADER tries 2, denied
+   |      X------------>|->|->|       |  |  Prepare(2)
+   |      |<------------X--X--X       |  |  Nack(2)
+   |      |  |          |  |  |       |  |  !! OLD LEADER tries 3
+   |      X------------>|->|->|       |  |  Prepare(3)
+   |      |<------------X--X--X       |  |  Promise(3,{null,null,null})
+   |      |  |          |  |  |       |  |  !! NEW LEADER proposes, denied
+   |      |  X--------->|->|->|       |  |  Accept!(2,Va)
+   |      |  |<---------X--X--X       |  |  Nack(3)
+   |      |  |          |  |  |       |  |  !! NEW LEADER tries 4
+   |      |  X--------->|->|->|       |  |  Prepare(4)
+   |      |  |<---------X--X--X       |  |  Promise(4,{null,null,null})
+   |      |  |          |  |  |       |  |  !! OLD LEADER proposes, denied
+   |      X------------>|->|->|       |  |  Accept!(3,Vb)
+   |      |<------------X--X--X       |  |  Nack(4)
+   |      |  |          |  |  |       |  |  ... and so on ...
+```
+
+### Scenario 5: How Paxos is immutable
+
+In the following case, one Proposer achieves acceptance of value V1 of two Acceptors before failing. A new Proposer may start another round, but it is now impossible for that proposer to prepare a majority that doesn't include at least one Acceptor that has accepted V1. As such, even though the Proposer doesn't see the existing consensus, the Proposer's only option is to propose the value already agreed upon. New Proposers can continually increase the identifier to restart the process, but the consensus can never be changed.
+
+```
+Proposer    Acceptor     Learner
+ |  |       |  |  |       |  |
+ X--------->|->|->|       |  |  Prepare(1)
+ |<---------X--X--X       |  |  Promise(1,{null,null,null})
+ x--------->|->|  |       |  |  Accept!(1,V1)
+ |  |       X--X--------->|->|  Accepted(1,V1)
+ !  |       |  |  |       |  |  !! FAIL !!
+    |       |  |  |       |  |
+    X--------->|->|       |  |  Prepare(2)
+    |<---------X--X       |  |  Promise(2,{V1,null})
+    X------>|->|->|       |  |  Accept!(2,V1)
+    |<------X--X--X------>|->|  Accepted(2,V1)
+    |       |  |  |       |  |
+```
+
